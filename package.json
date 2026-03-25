@@ -1,6 +1,6 @@
 {
   "name": "react-box-explorer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "description": "A zero-dependency React component for browsing, managing, and previewing files stored in Box.",
   "type": "module",
