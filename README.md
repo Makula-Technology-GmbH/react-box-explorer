@@ -82,6 +82,7 @@ Each entry in the `folders` array represents a Box folder with its own token and
 | `canCreateFolder` | `boolean` | `true` | Allow creating folders inside this folder and its subfolders |
 | `canPreview` | `boolean` | `true` | Allow previewing files in this folder and its subfolders |
 | `canDownload` | `boolean` | `true` | Allow downloading files from this folder and its subfolders |
+| `canRename` | `boolean` | `true` | Allow renaming items in this folder and its subfolders |
 | `canDelete` | `boolean` | `true` | Allow deleting items in this folder and its subfolders |
 
 ## Permissions

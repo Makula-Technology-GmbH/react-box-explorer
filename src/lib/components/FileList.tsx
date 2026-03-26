@@ -178,7 +178,7 @@ export function FileList() {
         const showPreview = isFile && perms.canPreview;
         const showDownload = isFile && perms.canDownload;
         const showDelete = !readOnly && perms.canDelete;
-        const showRename = !readOnly;
+        const showRename = !readOnly && perms.canRename;
         const showFileDivider = (showPreview || showDownload) && (showRename || showDelete);
         const showDeleteDivider = showRename && showDelete;
 

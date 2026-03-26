@@ -252,6 +252,7 @@ export function useExplorer(
         canCreateFolder: config?.canCreateFolder ?? true,
         canPreview: config?.canPreview ?? true,
         canDownload: config?.canDownload ?? true,
+        canRename: config?.canRename ?? true,
         canDelete: config?.canDelete ?? true,
       };
     },

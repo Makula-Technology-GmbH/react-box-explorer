@@ -12,6 +12,7 @@ export function App() {
       canCreateFolder: true,
       canPreview: true,
       canDownload: true,
+      canRename: true,
       canDelete: true,
     },
   ]);
@@ -28,7 +29,8 @@ export function App() {
         canCreateFolder: true,
         canPreview: true,
         canDownload: true,
-        canDelete: true,
+        canRename: true,
+      canDelete: true,
       },
     ]);
 
@@ -51,6 +53,7 @@ export function App() {
         canCreateFolder: r.canCreateFolder,
         canPreview: r.canPreview,
         canDownload: r.canDownload,
+        canRename: r.canRename,
         canDelete: r.canDelete,
       }));
     if (folders.length > 0) setConfig(folders);
@@ -151,7 +154,7 @@ export function App() {
               </button>
             )}
             <div style={{ display: "flex", gap: 10, marginLeft: 4, fontSize: 11, color: "#666" }}>
-              {(["canUpload", "canCreateFolder", "canPreview", "canDownload", "canDelete"] as const).map((perm) => (
+              {(["canUpload", "canCreateFolder", "canPreview", "canDownload", "canRename", "canDelete"] as const).map((perm) => (
                 <label key={perm} style={{ display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
                   <input
                     type="checkbox"

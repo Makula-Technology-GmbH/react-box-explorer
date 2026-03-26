@@ -7,6 +7,7 @@ export interface FolderConfig {
   canCreateFolder?: boolean;
   canPreview?: boolean;
   canDownload?: boolean;
+  canRename?: boolean;
   canDelete?: boolean;
 }
 
@@ -16,6 +17,7 @@ export interface ItemPermissions {
   canCreateFolder: boolean;
   canPreview: boolean;
   canDownload: boolean;
+  canRename: boolean;
   canDelete: boolean;
 }
 
