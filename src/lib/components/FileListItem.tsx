@@ -28,18 +28,21 @@ interface FileListItemProps {
 }
 
 export function FileListItem({ item, onShowMenu }: FileListItemProps) {
-  const { openFolder, previewFile, getPermissionsForItem } = useBoxExplorer();
+  const { openFolder, previewFile, getPermissionsForItem, readOnly } = useBoxExplorer();
+
+  const perms = getPermissionsForItem(item.id);
+  const isFile = item.type === 'file';
+  const hasAnyAction = isFile
+    ? perms.canPreview || perms.canDownload || (!readOnly && perms.canRename) || (!readOnly && perms.canDelete)
+    : (!readOnly && perms.canRename) || (!readOnly && perms.canDelete);
 
   const handleClick = useCallback(() => {
     if (item.type === 'folder') {
       openFolder(item.id, item.name);
-    } else if (item.type === 'file') {
-      const perms = getPermissionsForItem(item.id);
-      if (perms.canPreview) {
-        previewFile(item);
-      }
+    } else if (item.type === 'file' && perms.canPreview) {
+      previewFile(item);
     }
-  }, [item, openFolder, previewFile, getPermissionsForItem]);
+  }, [item, openFolder, previewFile, perms.canPreview]);
 
   const handleDotsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -65,17 +68,19 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
         <span className={styles.fileSize}>
           {item.type === 'file' ? formatSize(item.size) : '--'}
         </span>
-        <button
-          className={styles.actionDotsBtn}
-          onClick={handleDotsClick}
-          title="Actions"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <circle cx="8" cy="3" r="1.5" />
-            <circle cx="8" cy="8" r="1.5" />
-            <circle cx="8" cy="13" r="1.5" />
-          </svg>
-        </button>
+        {hasAnyAction && (
+          <button
+            className={styles.actionDotsBtn}
+            onClick={handleDotsClick}
+            title="Actions"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="8" cy="3" r="1.5" />
+              <circle cx="8" cy="8" r="1.5" />
+              <circle cx="8" cy="13" r="1.5" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   );
