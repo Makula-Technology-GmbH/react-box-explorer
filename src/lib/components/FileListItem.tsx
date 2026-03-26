@@ -68,7 +68,7 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
         <span className={styles.fileSize}>
           {item.type === 'file' ? formatSize(item.size) : '--'}
         </span>
-        {hasAnyAction && (
+        {hasAnyAction ? (
           <button
             className={styles.actionDotsBtn}
             onClick={handleDotsClick}
@@ -80,6 +80,8 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
               <circle cx="8" cy="13" r="1.5" />
             </svg>
           </button>
+        ) : (
+          <span className={styles.actionDotsBtn} style={{ visibility: 'hidden' }} />
         )}
       </div>
     </div>
