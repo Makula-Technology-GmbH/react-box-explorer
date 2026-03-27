@@ -3,6 +3,14 @@
   "version": "0.1.5",
   "license": "MIT",
   "description": "A zero-dependency React component for browsing, managing, and previewing files stored in Box.",
+  "homepage": "https://github.com/Makula-Technology-GmbH/react-box-explorer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Makula-Technology-GmbH/react-box-explorer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Makula-Technology-GmbH/react-box-explorer/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

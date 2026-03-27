@@ -153,4 +153,4 @@ yarn typecheck
 
 ## License
 
-MIT
+MIT — [GitHub](https://github.com/Makula-Technology-GmbH/react-box-explorer)
