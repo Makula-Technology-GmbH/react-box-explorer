@@ -15,6 +15,7 @@ function ExplorerInner({
     previewingFile,
     closePreview,
     getTokenForItem,
+    getPermissionsForItem,
     error,
     isLoading,
   } = useBoxExplorer();
@@ -22,6 +23,10 @@ function ExplorerInner({
   const previewToken = previewingFile
     ? getTokenForItem(previewingFile.id)
     : null;
+
+  const previewCanDownload = previewingFile
+    ? getPermissionsForItem(previewingFile.id).canDownload
+    : false;
 
   return (
     <div
@@ -52,6 +57,7 @@ function ExplorerInner({
         <PreviewModal
           file={previewingFile}
           accessToken={previewToken}
+          canDownload={previewCanDownload}
           onClose={closePreview}
         />
       )}

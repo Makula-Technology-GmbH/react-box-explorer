@@ -6,10 +6,11 @@ import styles from '../styles/explorer.module.css';
 interface PreviewModalProps {
   file: BoxNode;
   accessToken: string;
+  canDownload?: boolean;
   onClose: () => void;
 }
 
-export function PreviewModal({ file, accessToken, onClose }: PreviewModalProps) {
+export function PreviewModal({ file, accessToken, canDownload = true, onClose }: PreviewModalProps) {
   const handleDownload = () => {
     // Box API download endpoint — triggers a redirect to a download URL
     const url = `https://api.box.com/2.0/files/${file.id}/content`;
@@ -51,17 +52,19 @@ export function PreviewModal({ file, accessToken, onClose }: PreviewModalProps) 
             <span className={styles.previewFileName}>{file.name}</span>
           </div>
           <div className={styles.previewHeaderActions}>
-            <button
-              className={styles.previewDownloadBtn}
-              onClick={handleDownload}
-              title="Download"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1v9.5M8 10.5L4.5 7M8 10.5L11.5 7" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M2 12v2h12v-2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Download
-            </button>
+            {canDownload && (
+              <button
+                className={styles.previewDownloadBtn}
+                onClick={handleDownload}
+                title="Download"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1v9.5M8 10.5L4.5 7M8 10.5L11.5 7" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2 12v2h12v-2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Download
+              </button>
+            )}
             <button className={styles.previewCloseBtn} onClick={onClose} title="Close">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M12.3 4.3L8.6 8l3.7 3.7-1 1L7.6 9l-3.7 3.7-1-1L6.6 8 2.9 4.3l1-1L7.6 7l3.7-3.7z" />
