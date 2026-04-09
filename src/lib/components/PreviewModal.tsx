@@ -7,10 +7,11 @@ interface PreviewModalProps {
   file: BoxNode;
   accessToken: string;
   canDownload?: boolean;
+  fullScreen?: boolean;
   onClose: () => void;
 }
 
-export function PreviewModal({ file, accessToken, canDownload = true, onClose }: PreviewModalProps) {
+export function PreviewModal({ file, accessToken, canDownload = true, fullScreen = false, onClose }: PreviewModalProps) {
   const handleDownload = () => {
     // Box API download endpoint — triggers a redirect to a download URL
     const url = `https://api.box.com/2.0/files/${file.id}/content`;
@@ -45,7 +46,11 @@ export function PreviewModal({ file, accessToken, canDownload = true, onClose }:
 
   return (
     <div className={styles.previewOverlay} onClick={onClose}>
-      <div className={styles.previewModal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={styles.previewModal}
+        onClick={(e) => e.stopPropagation()}
+        style={fullScreen ? { width: '100vw', height: '100vh', maxWidth: '100vw', borderRadius: 0 } : undefined}
+      >
         <div className={styles.previewHeader}>
           <div className={styles.previewHeaderInfo}>
             <FileIcon item={file} size={24} />

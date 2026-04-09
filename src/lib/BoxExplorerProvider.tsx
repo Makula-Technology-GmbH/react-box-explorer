@@ -14,7 +14,7 @@ export function useBoxExplorer() {
 
 interface ProviderProps extends Pick<
   BoxExplorerProps,
-  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName'
+  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview'
 > {
   children: React.ReactNode;
 }
@@ -24,6 +24,7 @@ export function BoxExplorerProvider({
   onError,
   onActionComplete,
   entityName = 'All Files',
+  fullScreenPreview = false,
   readOnly = false,
   children,
 }: ProviderProps) {
@@ -83,6 +84,7 @@ export function BoxExplorerProvider({
       previewingFile,
       closePreview: () => setPreviewingFile(null),
       entityName,
+      fullScreenPreview,
       readOnly,
       refresh: explorer.refresh,
     }),
@@ -95,6 +97,7 @@ export function BoxExplorerProvider({
       explorer.error,
       previewingFile,
       entityName,
+      fullScreenPreview,
       readOnly,
     ],
   );

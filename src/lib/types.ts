@@ -53,6 +53,8 @@ export interface BoxExplorerProps {
   folders: FolderConfig[];
   /** Display name for the root breadcrumb (defaults to "All Files") */
   entityName?: string;
+  /** If true, the file preview modal fills the entire viewport */
+  fullScreenPreview?: boolean;
   height?: number | string;
   onError?: (error: Error) => void;
   onFilePreview?: (fileId: string, token: string) => void;
@@ -136,6 +138,8 @@ export interface BoxExplorerContextValue {
   closePreview: () => void;
   /** Display name for the root breadcrumb */
   entityName: string;
+  /** If true, the file preview modal fills the entire viewport */
+  fullScreenPreview: boolean;
   /** Read only mode */
   readOnly: boolean;
   /** Refresh current folder */

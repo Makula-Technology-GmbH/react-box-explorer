@@ -16,6 +16,7 @@ function ExplorerInner({
     closePreview,
     getTokenForItem,
     getPermissionsForItem,
+    fullScreenPreview,
     error,
     isLoading,
   } = useBoxExplorer();
@@ -58,6 +59,7 @@ function ExplorerInner({
           file={previewingFile}
           accessToken={previewToken}
           canDownload={previewCanDownload}
+          fullScreen={fullScreenPreview}
           onClose={closePreview}
         />
       )}
@@ -68,9 +70,9 @@ function ExplorerInner({
 export function BoxExplorer({
   folders,
   entityName,
+  fullScreenPreview,
   height = 500,
   onError,
-  onFilePreview,
   onActionComplete,
   readOnly,
   className,
@@ -82,6 +84,7 @@ export function BoxExplorer({
       onError={onError}
       onActionComplete={onActionComplete}
       entityName={entityName}
+      fullScreenPreview={fullScreenPreview}
       readOnly={readOnly}
     >
       <ExplorerInner height={height} className={className} style={style} />
