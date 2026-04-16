@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react
 import type { BoxNode } from '../types';
 import { useBoxExplorer } from '../BoxExplorerProvider';
 import { FileListItem } from './FileListItem';
+import { GridItem } from './GridItem';
 import { ConfirmModal } from './ConfirmModal';
 import { RenameModal } from './RenameModal';
 import styles from '../styles/explorer.module.css';
@@ -16,6 +17,7 @@ export function FileList() {
     readOnly,
     getTokenForItem,
     getPermissionsForItem,
+    viewMode,
   } = useBoxExplorer();
 
   const [contextMenu, setContextMenu] = useState<{
@@ -156,20 +158,25 @@ export function FileList() {
 
   return (
     <div className={styles.fileList}>
-      <div className={styles.fileListHeader}>
-        <span className={styles.headerName}>Name</span>
-        <span className={styles.headerDate}>Modified</span>
-        <span className={styles.headerSize}>Size</span>
-        <span className={styles.headerActions} />
-      </div>
-
-      {items.map((item) => (
-        <FileListItem
-          key={item.id}
-          item={item}
-          onShowMenu={handleShowMenu}
-        />
-      ))}
+      {viewMode === 'list' ? (
+        <>
+          <div className={styles.fileListHeader}>
+            <span className={styles.headerName}>Name</span>
+            <span className={styles.headerDate}>Modified</span>
+            <span className={styles.headerSize}>Size</span>
+            <span className={styles.headerActions} />
+          </div>
+          {items.map((item) => (
+            <FileListItem key={item.id} item={item} onShowMenu={handleShowMenu} />
+          ))}
+        </>
+      ) : (
+        <div className={styles.gridView}>
+          {items.map((item) => (
+            <GridItem key={item.id} item={item} onShowMenu={handleShowMenu} />
+          ))}
+        </div>
+      )}
 
       {/* Context menu */}
       {contextMenu && (() => {

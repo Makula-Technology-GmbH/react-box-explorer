@@ -71,6 +71,7 @@ export function BoxExplorer({
   folders,
   entityName,
   fullScreenPreview,
+  allowGridView,
   height = 500,
   onError,
   onActionComplete,
@@ -85,6 +86,7 @@ export function BoxExplorer({
       onActionComplete={onActionComplete}
       entityName={entityName}
       fullScreenPreview={fullScreenPreview}
+      allowGridView={allowGridView}
       readOnly={readOnly}
     >
       <ExplorerInner height={height} className={className} style={style} />

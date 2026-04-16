@@ -55,6 +55,8 @@ export interface BoxExplorerProps {
   entityName?: string;
   /** If true, the file preview modal fills the entire viewport */
   fullScreenPreview?: boolean;
+  /** If false, hides the grid view toggle (default: true) */
+  allowGridView?: boolean;
   height?: number | string;
   onError?: (error: Error) => void;
   onFilePreview?: (fileId: string, token: string) => void;
@@ -122,6 +124,12 @@ export interface BoxExplorerContextValue {
   canUpload: boolean;
   /** Whether creating folders is allowed in the current view */
   canCreateFolder: boolean;
+  /** Whether grid view is allowed */
+  allowGridView: boolean;
+  /** Current view mode */
+  viewMode: 'list' | 'grid';
+  /** Set the view mode */
+  setViewMode: (mode: 'list' | 'grid') => void;
   /** Rename an item */
   renameItem: (item: BoxNode, newName: string) => Promise<void>;
   /** Delete an item */

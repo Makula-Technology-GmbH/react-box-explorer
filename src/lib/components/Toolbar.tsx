@@ -11,6 +11,9 @@ export function Toolbar() {
     isLoading,
     canUpload,
     canCreateFolder: canCreate,
+    allowGridView,
+    viewMode,
+    setViewMode,
   } = useBoxExplorer();
   const fileRef = useRef<HTMLInputElement>(null);
   const [showNewFolder, setShowNewFolder] = useState(false);
@@ -110,6 +113,28 @@ export function Toolbar() {
           />
         </>
       )}
+      {/* View mode toggle */}
+      {allowGridView && <div className={styles.viewToggle}>
+        <button
+          className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleActive : ''}`}
+          onClick={() => setViewMode('list')}
+          title="List view"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 3h14v2H1zm0 4h14v2H1zm0 4h14v2H1z" />
+          </svg>
+        </button>
+        <button
+          className={`${styles.viewToggleBtn} ${viewMode === 'grid' ? styles.viewToggleActive : ''}`}
+          onClick={() => setViewMode('grid')}
+          title="Grid view"
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z" />
+          </svg>
+        </button>
+      </div>}
+
       <button
         className={styles.toolbarBtn}
         onClick={refresh}

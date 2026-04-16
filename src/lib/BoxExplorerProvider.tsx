@@ -14,7 +14,7 @@ export function useBoxExplorer() {
 
 interface ProviderProps extends Pick<
   BoxExplorerProps,
-  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview'
+  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview' | 'allowGridView'
 > {
   children: React.ReactNode;
 }
@@ -25,11 +25,13 @@ export function BoxExplorerProvider({
   onActionComplete,
   entityName = 'All Files',
   fullScreenPreview = false,
+  allowGridView = true,
   readOnly = false,
   children,
 }: ProviderProps) {
   const explorer = useExplorer(folders, onError);
   const [previewingFile, setPreviewingFile] = useState<BoxNode | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const renameItem = async (item: BoxNode, newName: string) => {
     await explorer.renameItem(item, newName);
@@ -85,6 +87,9 @@ export function BoxExplorerProvider({
       closePreview: () => setPreviewingFile(null),
       entityName,
       fullScreenPreview,
+      allowGridView,
+      viewMode,
+      setViewMode,
       readOnly,
       refresh: explorer.refresh,
     }),
@@ -98,6 +103,8 @@ export function BoxExplorerProvider({
       previewingFile,
       entityName,
       fullScreenPreview,
+      allowGridView,
+      viewMode,
       readOnly,
     ],
   );
