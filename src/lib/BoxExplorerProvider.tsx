@@ -54,6 +54,23 @@ export function BoxExplorerProvider({
     }
   };
 
+  const uploadFolders = async (files: File[]) => {
+    await explorer.uploadFolders(files);
+    const folderNames = new Set<string>();
+    for (const file of files) {
+      const webkitPath = (file as any).webkitRelativePath || '';
+      const folderName = webkitPath.split('/')[0];
+      if (folderName) folderNames.add(folderName);
+    }
+    for (const folderName of folderNames) {
+      onActionComplete?.('upload', {
+        id: '',
+        name: folderName,
+        type: 'folder',
+      });
+    }
+  };
+
   const createFolder = async (name: string) => {
     await explorer.createFolder(name);
   };
@@ -81,6 +98,7 @@ export function BoxExplorerProvider({
       renameItem,
       deleteItem,
       uploadFiles,
+      uploadFolders,
       createFolder,
       previewFile: (file: BoxNode) => setPreviewingFile(file),
       previewingFile,

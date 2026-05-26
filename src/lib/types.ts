@@ -136,6 +136,8 @@ export interface BoxExplorerContextValue {
   deleteItem: (item: BoxNode) => Promise<void>;
   /** Upload files to current folder */
   uploadFiles: (files: File[]) => Promise<void>;
+  /** Upload folders to current folder */
+  uploadFolders: (files: File[]) => Promise<void>;
   /** Create a new folder in current folder */
   createFolder: (name: string) => Promise<void>;
   /** Preview a file */

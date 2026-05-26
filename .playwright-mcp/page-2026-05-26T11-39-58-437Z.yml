@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - heading "Box File Explorer" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Enter Box folder IDs with their access tokens. Each folder can use a different token.
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - textbox "Folder ID" [ref=e8]
+      - textbox "Access Token" [ref=e9]
+      - textbox "Label (optional)" [ref=e10]
+      - generic [ref=e11]:
+        - generic [ref=e12] [cursor=pointer]:
+          - checkbox "Upload" [checked] [ref=e13]
+          - text: Upload
+        - generic [ref=e14] [cursor=pointer]:
+          - checkbox "CreateFolder" [checked] [ref=e15]
+          - text: CreateFolder
+        - generic [ref=e16] [cursor=pointer]:
+          - checkbox "Preview" [checked] [ref=e17]
+          - text: Preview
+        - generic [ref=e18] [cursor=pointer]:
+          - checkbox "Download" [checked] [ref=e19]
+          - text: Download
+        - generic [ref=e20] [cursor=pointer]:
+          - checkbox "Rename" [checked] [ref=e21]
+          - text: Rename
+        - generic [ref=e22] [cursor=pointer]:
+          - checkbox "Delete" [checked] [ref=e23]
+          - text: Delete
+    - generic [ref=e24]:
+      - button "+ Add Folder" [ref=e25] [cursor=pointer]
+      - button "Load" [ref=e26] [cursor=pointer]
+  - generic [ref=e27]:
+    - img [ref=e28]
+    - paragraph [ref=e30]:
+      - text: Configure folders above and click
+      - strong [ref=e31]: Load
+    - paragraph [ref=e32]: Right-click items for actions. Double-click files to preview.

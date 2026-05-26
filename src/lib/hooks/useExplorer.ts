@@ -339,6 +339,78 @@ export function useExplorer(
     [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, handleError],
   );
 
+  // Map to track created folders to avoid duplicates
+  const folderCacheRef = useRef<Map<string, string>>(new Map());
+
+  const uploadFolders = useCallback(
+    async (files: File[]) => {
+      let rootFolderId: string | undefined;
+      let token: string | null = null;
+      if (navigation) {
+        rootFolderId = navigation.currentFolderId;
+        token = getTokenForItem(rootFolderId);
+      } else {
+        const uploadFolder = folders.find((f) => f.canUpload !== false);
+        if (uploadFolder) {
+          rootFolderId = uploadFolder.folderId;
+          token = uploadFolder.token;
+        }
+      }
+      if (!token || !rootFolderId) return;
+
+      try {
+        folderCacheRef.current.clear();
+        folderCacheRef.current.set('', rootFolderId);
+
+        for (const file of files) {
+          const webkitPath = (file as any).webkitRelativePath || '';
+          if (!webkitPath) continue;
+
+          const parts = webkitPath.split('/');
+          const fileName = parts.pop();
+          if (!fileName) continue;
+
+          let parentId = rootFolderId;
+          let currentPath = '';
+
+          // Create folder structure
+          for (const part of parts) {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+
+            if (folderCacheRef.current.has(currentPath)) {
+              parentId = folderCacheRef.current.get(currentPath)!;
+            } else {
+              const newFolder = await boxClient.createFolder(token, parentId, part);
+              folderCacheRef.current.set(currentPath, newFolder.id);
+              parentId = newFolder.id;
+
+              // Map the new folder to token config
+              const config = itemTokenMapRef.current.get(rootFolderId);
+              if (config) {
+                itemTokenMapRef.current.set(newFolder.id, config);
+              }
+            }
+          }
+
+          // Upload file to the final folder
+          await boxClient.uploadFile(token, parentId, file);
+        }
+
+        if (navigation) {
+          await loadFolderContents(token, rootFolderId);
+        } else {
+          await loadAllRoots();
+        }
+      } catch (err) {
+        handleError(err as Error);
+        throw err;
+      } finally {
+        folderCacheRef.current.clear();
+      }
+    },
+    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, handleError],
+  );
+
   const createFolder = useCallback(
     async (name: string) => {
       let folderId: string | undefined;
@@ -399,6 +471,7 @@ export function useExplorer(
     renameItem,
     deleteItem,
     uploadFiles,
+    uploadFolders,
     createFolder,
     refresh,
   };

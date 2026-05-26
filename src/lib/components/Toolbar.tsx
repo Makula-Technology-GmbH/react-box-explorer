@@ -5,6 +5,7 @@ import styles from '../styles/explorer.module.css';
 export function Toolbar() {
   const {
     uploadFiles,
+    uploadFolders,
     createFolder,
     readOnly,
     refresh,
@@ -16,6 +17,7 @@ export function Toolbar() {
     setViewMode,
   } = useBoxExplorer();
   const fileRef = useRef<HTMLInputElement>(null);
+  const folderRef = useRef<HTMLInputElement>(null);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -26,6 +28,10 @@ export function Toolbar() {
 
   const handleUploadClick = () => {
     fileRef.current?.click();
+  };
+
+  const handleFolderUploadClick = () => {
+    folderRef.current?.click();
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,6 +47,20 @@ export function Toolbar() {
       setUploading(false);
     }
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    setUploading(true);
+    try {
+      await uploadFolders(Array.from(fileList));
+    } catch {
+      // handled in provider
+    } finally {
+      setUploading(false);
+    }
+    if (folderRef.current) folderRef.current.value = '';
   };
 
   const handleCreateFolder = async () => {
@@ -104,12 +124,43 @@ export function Toolbar() {
             )}
             {uploading ? 'Uploading...' : 'Upload'}
           </button>
+          <button
+            className={styles.toolbarBtn}
+            onClick={handleFolderUploadClick}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className={styles.spinning}
+              >
+                <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
+                <path d="M2 12v2h12v-2H2z" />
+              </svg>
+            )}
+            {uploading ? 'Uploading...' : 'Upload Folder'}
+          </button>
           <input
             ref={fileRef}
             type="file"
             multiple
             style={{ display: 'none' }}
             onChange={handleFileChange}
+          />
+          <input
+            ref={folderRef}
+            type="file"
+            multiple
+            style={{ display: 'none' }}
+            onChange={handleFolderChange}
+            {...({ webkitdirectory: '' } as any)}
           />
         </>
       )}
