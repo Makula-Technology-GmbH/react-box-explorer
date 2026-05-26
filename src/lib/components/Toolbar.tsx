@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useBoxExplorer } from '../BoxExplorerProvider';
+import { UploadProgressModal, type UploadItem } from './UploadProgressModal';
 import styles from '../styles/explorer.module.css';
 
 export function Toolbar() {
@@ -16,51 +17,107 @@ export function Toolbar() {
     viewMode,
     setViewMode,
   } = useBoxExplorer();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const folderRef = useRef<HTMLInputElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [creating, setCreating] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
+  const [showProgress, setShowProgress] = useState(false);
 
-  const showUpload = !readOnly && canUpload;
+  const showUploadBtn = !readOnly && canUpload;
   const showCreateFolder = !readOnly && canCreate;
+  const isUploading = uploadItems.some((item) => item.status === 'uploading');
+  const [showUploadMenu, setShowUploadMenu] = useState(false);
 
-  const handleUploadClick = () => {
-    fileRef.current?.click();
+  const handleFileUploadClick = () => {
+    fileInputRef.current?.click();
+    setShowUploadMenu(false);
   };
 
   const handleFolderUploadClick = () => {
-    folderRef.current?.click();
+    folderInputRef.current?.click();
+    setShowUploadMenu(false);
+  };
+
+  const createUploadItems = (files: File[]): UploadItem[] => {
+    return files.map((file, index) => ({
+      id: `${file.name}-${index}`,
+      name: file.name,
+      progress: 0,
+      status: 'uploading' as const,
+    }));
+  };
+
+  const handleProgress = (fileIndex: number, progress: number) => {
+    setUploadItems((prev) => {
+      const updated = [...prev];
+      if (updated[fileIndex]) {
+        updated[fileIndex] = { ...updated[fileIndex], progress };
+      }
+      return updated;
+    });
+  };
+
+  const completeUpload = () => {
+    setUploadItems((prev) =>
+      prev.map((item) =>
+        item.status === 'uploading'
+          ? { ...item, status: 'completed' as const, progress: 100 }
+          : item,
+      ),
+    );
+  };
+
+  const failUpload = (errorMsg: string) => {
+    setUploadItems((prev) =>
+      prev.map((item) =>
+        item.status === 'uploading'
+          ? { ...item, status: 'error' as const, error: errorMsg }
+          : item,
+      ),
+    );
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
+
     const files = Array.from(fileList).slice(0, 10);
-    setUploading(true);
+    const items = createUploadItems(files);
+    setUploadItems(items);
+    setShowProgress(true);
+
     try {
-      await uploadFiles(files);
-    } catch {
-      // handled in provider
-    } finally {
-      setUploading(false);
+      await uploadFiles(files, handleProgress);
+      completeUpload();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Upload failed';
+      failUpload(errorMsg);
     }
-    if (fileRef.current) fileRef.current.value = '';
+
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
-    setUploading(true);
+
+    const files = Array.from(fileList);
+    const items = createUploadItems(files);
+    setUploadItems(items);
+    setShowProgress(true);
+
     try {
-      await uploadFolders(Array.from(fileList));
-    } catch {
-      // handled in provider
-    } finally {
-      setUploading(false);
+      await uploadFolders(files, handleProgress);
+      completeUpload();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Upload failed';
+      failUpload(errorMsg);
     }
-    if (folderRef.current) folderRef.current.value = '';
+
+    if (folderInputRef.current) folderInputRef.current.value = '';
   };
 
   const handleCreateFolder = async () => {
@@ -88,6 +145,11 @@ export function Toolbar() {
     }
   };
 
+  const handleCloseProgress = () => {
+    setShowProgress(false);
+    setUploadItems([]);
+  };
+
   return (
     <div className={styles.toolbar}>
       {showCreateFolder && (
@@ -99,63 +161,59 @@ export function Toolbar() {
           New Folder
         </button>
       )}
-      {showUpload && (
+      {showUploadBtn && (
         <>
-          <button
-            className={styles.toolbarBtn}
-            onClick={handleUploadClick}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className={styles.spinning}
-              >
-                <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
-                <path d="M2 12v2h12v-2H2z" />
-              </svg>
+          <div style={{ position: 'relative' }}>
+            <button
+              className={styles.toolbarBtn}
+              onClick={() => setShowUploadMenu(!showUploadMenu)}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  className={styles.spinning}
+                >
+                  <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
+                  <path d="M2 12v2h12v-2H2z" />
+                </svg>
+              )}
+              {isUploading ? 'Uploading...' : 'Upload'}
+            </button>
+            {showUploadMenu && (
+              <div className={styles.uploadMenu}>
+                <button className={styles.uploadMenuItem} onClick={handleFileUploadClick}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
+                    <path d="M2 12v2h12v-2H2z" />
+                  </svg>
+                  Upload Files
+                </button>
+                <button className={styles.uploadMenuItem} onClick={handleFolderUploadClick}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1 2h5l2 2h6v2h-1V5H7.5L5.5 3H2v10h6v1H1V2z" />
+                  </svg>
+                  Upload Folder
+                </button>
+              </div>
             )}
-            {uploading ? 'Uploading...' : 'Upload'}
-          </button>
-          <button
-            className={styles.toolbarBtn}
-            onClick={handleFolderUploadClick}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className={styles.spinning}
-              >
-                <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
-              </svg>
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
-                <path d="M2 12v2h12v-2H2z" />
-              </svg>
-            )}
-            {uploading ? 'Uploading...' : 'Upload Folder'}
-          </button>
+          </div>
           <input
-            ref={fileRef}
+            ref={fileInputRef}
             type="file"
             multiple
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
           <input
-            ref={folderRef}
+            ref={folderInputRef}
             type="file"
             multiple
             style={{ display: 'none' }}
@@ -164,27 +222,30 @@ export function Toolbar() {
           />
         </>
       )}
+
       {/* View mode toggle */}
-      {allowGridView && <div className={styles.viewToggle}>
-        <button
-          className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleActive : ''}`}
-          onClick={() => setViewMode('list')}
-          title="List view"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1 3h14v2H1zm0 4h14v2H1zm0 4h14v2H1z" />
-          </svg>
-        </button>
-        <button
-          className={`${styles.viewToggleBtn} ${viewMode === 'grid' ? styles.viewToggleActive : ''}`}
-          onClick={() => setViewMode('grid')}
-          title="Grid view"
-        >
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z" />
-          </svg>
-        </button>
-      </div>}
+      {allowGridView && (
+        <div className={styles.viewToggle}>
+          <button
+            className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleActive : ''}`}
+            onClick={() => setViewMode('list')}
+            title="List view"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 3h14v2H1zm0 4h14v2H1zm0 4h14v2H1z" />
+            </svg>
+          </button>
+          <button
+            className={`${styles.viewToggleBtn} ${viewMode === 'grid' ? styles.viewToggleActive : ''}`}
+            onClick={() => setViewMode('grid')}
+            title="Grid view"
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 1h6v6H1zm8 0h6v6H9zM1 9h6v6H1zm8 0h6v6H9z" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       <button
         className={styles.toolbarBtn}
@@ -238,6 +299,11 @@ export function Toolbar() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Upload progress modal */}
+      {showProgress && (
+        <UploadProgressModal items={uploadItems} onClose={handleCloseProgress} />
       )}
     </div>
   );

@@ -1,0 +1,6 @@
+[     117ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:8007/node_modules/.vite/deps/chunk-373CG7ZK.js?v=fb0b136f:21548
+[     173ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:8007/favicon.ico:0
+[     228ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8007/:0
+[  314730ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:8007/@vite/client:559
+[  315427ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:8007/node_modules/.vite/deps/chunk-373CG7ZK.js?v=fb0b136f:21548
+[  315535ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:8007/:0

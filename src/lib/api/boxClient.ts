@@ -134,6 +134,7 @@ export async function uploadFile(
   token: string,
   parentFolderId: string,
   file: File,
+  onProgress?: (progress: number) => void,
 ): Promise<void> {
   const attributes = JSON.stringify({
     name: file.name,
@@ -144,16 +145,35 @@ export async function uploadFile(
   formData.append('attributes', attributes);
   formData.append('file', file);
 
-  const res = await fetch(`${UPLOAD_URL}/files/content`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: formData,
-  });
+  const xhr = new XMLHttpRequest();
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Box upload error ${res.status}: ${body}`);
-  }
+  return new Promise((resolve, reject) => {
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percentComplete = (e.loaded / e.total) * 100;
+        onProgress?.(Math.round(percentComplete));
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.(100);
+        resolve();
+      } else {
+        reject(new Error(`Box upload error ${xhr.status}: ${xhr.responseText}`));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new Error('Upload failed'));
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload cancelled'));
+    });
+
+    xhr.open('POST', `${UPLOAD_URL}/files/content`);
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.send(formData);
+  });
 }

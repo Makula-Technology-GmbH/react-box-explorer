@@ -308,7 +308,10 @@ export function useExplorer(
   );
 
   const uploadFiles = useCallback(
-    async (files: File[]) => {
+    async (
+      files: File[],
+      onProgress?: (fileIndex: number, progress: number) => void,
+    ) => {
       let folderId: string | undefined;
       let token: string | null = null;
       if (navigation) {
@@ -323,8 +326,11 @@ export function useExplorer(
       }
       if (!token || !folderId) return;
       try {
-        for (const file of files) {
-          await boxClient.uploadFile(token, folderId, file);
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          await boxClient.uploadFile(token, folderId, file, (progress) => {
+            onProgress?.(i, progress);
+          });
         }
         if (navigation) {
           await loadFolderContents(token, folderId);
@@ -343,7 +349,10 @@ export function useExplorer(
   const folderCacheRef = useRef<Map<string, string>>(new Map());
 
   const uploadFolders = useCallback(
-    async (files: File[]) => {
+    async (
+      files: File[],
+      onProgress?: (fileIndex: number, progress: number) => void,
+    ) => {
       let rootFolderId: string | undefined;
       let token: string | null = null;
       if (navigation) {
@@ -362,7 +371,8 @@ export function useExplorer(
         folderCacheRef.current.clear();
         folderCacheRef.current.set('', rootFolderId);
 
-        for (const file of files) {
+        for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+          const file = files[fileIndex];
           const webkitPath = (file as any).webkitRelativePath || '';
           if (!webkitPath) continue;
 
@@ -393,7 +403,9 @@ export function useExplorer(
           }
 
           // Upload file to the final folder
-          await boxClient.uploadFile(token, parentId, file);
+          await boxClient.uploadFile(token, parentId, file, (progress) => {
+            onProgress?.(fileIndex, progress);
+          });
         }
 
         if (navigation) {

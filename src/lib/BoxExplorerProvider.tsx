@@ -43,8 +43,11 @@ export function BoxExplorerProvider({
     onActionComplete?.('delete', item);
   };
 
-  const uploadFiles = async (files: File[]) => {
-    await explorer.uploadFiles(files);
+  const uploadFiles = async (
+    files: File[],
+    onProgress?: (fileIndex: number, progress: number) => void,
+  ) => {
+    await explorer.uploadFiles(files, onProgress);
     for (const file of files) {
       onActionComplete?.('upload', {
         id: '',
@@ -54,8 +57,11 @@ export function BoxExplorerProvider({
     }
   };
 
-  const uploadFolders = async (files: File[]) => {
-    await explorer.uploadFolders(files);
+  const uploadFolders = async (
+    files: File[],
+    onProgress?: (fileIndex: number, progress: number) => void,
+  ) => {
+    await explorer.uploadFolders(files, onProgress);
     const folderNames = new Set<string>();
     for (const file of files) {
       const webkitPath = (file as any).webkitRelativePath || '';
