@@ -47,34 +47,38 @@ export function BoxExplorerProvider({
   const uploadFiles = async (
     files: File[],
     onProgress?: (fileIndex: number, progress: number) => void,
+    onFileError?: (fileIndex: number, error: Error) => void,
   ) => {
-    await explorer.uploadFiles(files, onProgress);
-    for (const file of files) {
-      onActionComplete?.('upload', {
-        id: '',
-        name: file.name,
-        type: 'file',
-      });
-    }
+    const failedIndexes = new Set<number>();
+    await explorer.uploadFiles(files, onProgress, (idx, err) => {
+      failedIndexes.add(idx);
+      onFileError?.(idx, err);
+    });
+    files.forEach((file, idx) => {
+      if (failedIndexes.has(idx)) return;
+      onActionComplete?.('upload', { id: '', name: file.name, type: 'file' });
+    });
   };
 
   const uploadFolders = async (
     files: File[],
     onProgress?: (fileIndex: number, progress: number) => void,
+    onFileError?: (fileIndex: number, error: Error) => void,
   ) => {
-    await explorer.uploadFolders(files, onProgress);
+    const failedIndexes = new Set<number>();
+    await explorer.uploadFolders(files, onProgress, (idx, err) => {
+      failedIndexes.add(idx);
+      onFileError?.(idx, err);
+    });
     const folderNames = new Set<string>();
-    for (const file of files) {
+    files.forEach((file, idx) => {
+      if (failedIndexes.has(idx)) return;
       const webkitPath = (file as any).webkitRelativePath || '';
       const folderName = webkitPath.split('/')[0];
       if (folderName) folderNames.add(folderName);
-    }
+    });
     for (const folderName of folderNames) {
-      onActionComplete?.('upload', {
-        id: '',
-        name: folderName,
-        type: 'folder',
-      });
+      onActionComplete?.('upload', { id: '', name: folderName, type: 'folder' });
     }
   };
 

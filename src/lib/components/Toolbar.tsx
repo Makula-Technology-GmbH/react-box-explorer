@@ -1,7 +1,6 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useBoxExplorer } from '../BoxExplorerProvider';
-import { UploadProgressModal, type UploadItem } from './UploadProgressModal';
-import { BoxUploader } from './BoxUploader';
+import { UploadFilesModal, type UploadItem } from './UploadFilesModal';
 import styles from '../styles/explorer.module.css';
 
 export function Toolbar() {
@@ -15,111 +14,107 @@ export function Toolbar() {
     canUpload,
     canCreateFolder: canCreate,
     allowGridView,
-    useBoxUploader,
     viewMode,
     setViewMode,
   } = useBoxExplorer();
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const folderInputRef = useRef<HTMLInputElement>(null);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [folderName, setFolderName] = useState('');
   const [creating, setCreating] = useState(false);
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
-  const [showProgress, setShowProgress] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   const showUploadBtn = !readOnly && canUpload;
   const showCreateFolder = !readOnly && canCreate;
   const isUploading = uploadItems.some((item) => item.status === 'uploading');
-  const [showUploadMenu, setShowUploadMenu] = useState(false);
 
-  const handleFileUploadClick = () => {
-    fileInputRef.current?.click();
-    setShowUploadMenu(false);
+  const handleUploadClick = () => {
+    setShowUploadModal(true);
   };
 
-  const handleFolderUploadClick = () => {
-    folderInputRef.current?.click();
-    setShowUploadMenu(false);
+  const updateItemById = (id: string, patch: Partial<UploadItem>) => {
+    setUploadItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    );
   };
 
-  const createUploadItems = (files: File[]): UploadItem[] => {
-    return files.map((file, index) => ({
-      id: `${file.name}-${index}`,
-      name: file.name,
+  const handleModalUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+
+    // Separate files (no path) from folder files (have webkitRelativePath).
+    const regularFiles: File[] = [];
+    const folderFiles: File[] = [];
+    for (const file of files) {
+      if ((file as any).webkitRelativePath) folderFiles.push(file);
+      else regularFiles.push(file);
+    }
+
+    // Build items in upload order so progress indexes line up with item indexes.
+    const orderedFiles = [...folderFiles, ...regularFiles];
+    const items: UploadItem[] = orderedFiles.map((file, index) => ({
+      id: `${file.name}-${index}-${Date.now()}`,
+      name: (file as any).webkitRelativePath || file.name,
       progress: 0,
-      status: 'uploading' as const,
+      status: 'uploading',
+      file,
     }));
-  };
+    setUploadItems(items);
 
-  const handleProgress = (fileIndex: number, progress: number) => {
-    setUploadItems((prev) => {
-      const updated = [...prev];
-      if (updated[fileIndex]) {
-        updated[fileIndex] = { ...updated[fileIndex], progress };
-      }
-      return updated;
-    });
-  };
+    const folderItemIds = items.slice(0, folderFiles.length).map((i) => i.id);
+    const fileItemIds = items.slice(folderFiles.length).map((i) => i.id);
 
-  const completeUpload = () => {
+    const onProgress = (ids: string[]) => (fileIndex: number, progress: number) => {
+      const id = ids[fileIndex];
+      if (id) updateItemById(id, { progress });
+    };
+    const onFileError = (ids: string[]) => (fileIndex: number, err: Error) => {
+      const id = ids[fileIndex];
+      if (id) updateItemById(id, { status: 'error', error: err.message });
+    };
+
+    if (folderFiles.length > 0) {
+      await uploadFolders(folderFiles, onProgress(folderItemIds), onFileError(folderItemIds));
+    }
+    if (regularFiles.length > 0) {
+      await uploadFiles(regularFiles, onProgress(fileItemIds), onFileError(fileItemIds));
+    }
+
+    // Anything still 'uploading' didn't error → mark completed.
     setUploadItems((prev) =>
       prev.map((item) =>
         item.status === 'uploading'
-          ? { ...item, status: 'completed' as const, progress: 100 }
+          ? { ...item, status: 'completed', progress: 100 }
           : item,
       ),
     );
+    refresh();
   };
 
-  const failUpload = (errorMsg: string) => {
+  const handleRetry = async (item: UploadItem) => {
+    if (!item.file) return;
+
+    updateItemById(item.id, { status: 'uploading', progress: 0, error: undefined });
+
+    const onProgress = (_idx: number, progress: number) =>
+      updateItemById(item.id, { progress });
+    const onFileError = (_idx: number, err: Error) =>
+      updateItemById(item.id, { status: 'error', error: err.message });
+
+    const isFolderFile = !!(item.file as any).webkitRelativePath;
+    if (isFolderFile) {
+      await uploadFolders([item.file], onProgress, onFileError);
+    } else {
+      await uploadFiles([item.file], onProgress, onFileError);
+    }
+
     setUploadItems((prev) =>
-      prev.map((item) =>
-        item.status === 'uploading'
-          ? { ...item, status: 'error' as const, error: errorMsg }
-          : item,
+      prev.map((i) =>
+        i.id === item.id && i.status === 'uploading'
+          ? { ...i, status: 'completed', progress: 100 }
+          : i,
       ),
     );
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (!fileList || fileList.length === 0) return;
-
-    const files = Array.from(fileList).slice(0, 10);
-    const items = createUploadItems(files);
-    setUploadItems(items);
-    setShowProgress(true);
-
-    try {
-      await uploadFiles(files, handleProgress);
-      completeUpload();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Upload failed';
-      failUpload(errorMsg);
-    }
-
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleFolderChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileList = e.target.files;
-    if (!fileList || fileList.length === 0) return;
-
-    const files = Array.from(fileList);
-    const items = createUploadItems(files);
-    setUploadItems(items);
-    setShowProgress(true);
-
-    try {
-      await uploadFolders(files, handleProgress);
-      completeUpload();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Upload failed';
-      failUpload(errorMsg);
-    }
-
-    if (folderInputRef.current) folderInputRef.current.value = '';
+    refresh();
   };
 
   const handleCreateFolder = async () => {
@@ -147,8 +142,8 @@ export function Toolbar() {
     }
   };
 
-  const handleCloseProgress = () => {
-    setShowProgress(false);
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
     setUploadItems([]);
   };
 
@@ -164,69 +159,29 @@ export function Toolbar() {
         </button>
       )}
       {showUploadBtn && (
-        <>
-          {useBoxUploader ? (
-            <BoxUploader />
+        <button
+          className={styles.toolbarBtn}
+          onClick={handleUploadClick}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="currentColor"
+              className={styles.spinning}
+            >
+              <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
+            </svg>
           ) : (
-            <div style={{ position: 'relative' }}>
-              <button
-                className={styles.toolbarBtn}
-                onClick={() => setShowUploadMenu(!showUploadMenu)}
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="currentColor"
-                    className={styles.spinning}
-                  >
-                    <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
-                    <path d="M2 12v2h12v-2H2z" />
-                  </svg>
-                )}
-                {isUploading ? 'Uploading...' : 'Upload'}
-              </button>
-              {showUploadMenu && (
-                <div className={styles.uploadMenu}>
-                  <button className={styles.uploadMenuItem} onClick={handleFileUploadClick}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
-                      <path d="M2 12v2h12v-2H2z" />
-                    </svg>
-                    Upload Files
-                  </button>
-                  <button className={styles.uploadMenuItem} onClick={handleFolderUploadClick}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M1 2h5l2 2h6v2h-1V5H7.5L5.5 3H2v10h6v1H1V2z" />
-                    </svg>
-                    Upload Folders
-                  </button>
-                </div>
-              )}
-            </div>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
+              <path d="M2 12v2h12v-2H2z" />
+            </svg>
           )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-          />
-          <input
-            ref={folderInputRef}
-            type="file"
-            multiple
-            style={{ display: 'none' }}
-            onChange={handleFolderChange}
-            {...({ webkitdirectory: '' } as any)}
-          />
-        </>
+          {isUploading ? 'Uploading...' : 'Upload'}
+        </button>
       )}
 
       {/* View mode toggle */}
@@ -307,9 +262,15 @@ export function Toolbar() {
         </div>
       )}
 
-      {/* Upload progress modal */}
-      {showProgress && (
-        <UploadProgressModal items={uploadItems} onClose={handleCloseProgress} />
+      {/* Combined upload modal with progress */}
+      {showUploadModal && (
+        <UploadFilesModal
+          onUpload={handleModalUpload}
+          onClose={handleCloseUploadModal}
+          isUploading={isUploading}
+          uploadItems={uploadItems}
+          onRetry={handleRetry}
+        />
       )}
     </div>
   );

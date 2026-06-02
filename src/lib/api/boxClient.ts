@@ -121,13 +121,29 @@ export async function createFolder(
   parentFolderId: string,
   name: string,
 ): Promise<BoxFolder> {
-  return request<BoxFolder>(token, '/folders', {
+  const res = await fetch(`${BASE_URL}/folders`, {
     method: 'POST',
-    body: JSON.stringify({
-      name,
-      parent: { id: parentFolderId },
-    }),
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, parent: { id: parentFolderId } }),
   });
+
+  if (res.ok) return res.json();
+
+  // 409 = name conflict. Reuse the existing folder so retries (and concurrent
+  // uploads into the same nested path) don't fail.
+  if (res.status === 409) {
+    const body = await res.json().catch(() => null);
+    const existingId = body?.context_info?.conflicts?.[0]?.id;
+    if (existingId) {
+      return { id: existingId, name, type: 'folder' } as BoxFolder;
+    }
+  }
+
+  const text = await res.text();
+  throw new Error(`Box API error ${res.status}: ${text}`);
 }
 
 export async function uploadFile(

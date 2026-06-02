@@ -138,10 +138,18 @@ export interface BoxExplorerContextValue {
   renameItem: (item: BoxNode, newName: string) => Promise<void>;
   /** Delete an item */
   deleteItem: (item: BoxNode) => Promise<void>;
-  /** Upload files to current folder */
-  uploadFiles: (files: File[], onProgress?: (fileIndex: number, progress: number) => void) => Promise<void>;
-  /** Upload folders to current folder */
-  uploadFolders: (files: File[], onProgress?: (fileIndex: number, progress: number) => void) => Promise<void>;
+  /** Upload files to current folder. Continues past individual failures and reports them via onFileError. */
+  uploadFiles: (
+    files: File[],
+    onProgress?: (fileIndex: number, progress: number) => void,
+    onFileError?: (fileIndex: number, error: Error) => void,
+  ) => Promise<void>;
+  /** Upload folders to current folder. Continues past individual failures and reports them via onFileError. */
+  uploadFolders: (
+    files: File[],
+    onProgress?: (fileIndex: number, progress: number) => void,
+    onFileError?: (fileIndex: number, error: Error) => void,
+  ) => Promise<void>;
   /** Create a new folder in current folder */
   createFolder: (name: string) => Promise<void>;
   /** Preview a file */

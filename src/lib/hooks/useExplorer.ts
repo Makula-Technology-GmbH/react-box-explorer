@@ -311,6 +311,7 @@ export function useExplorer(
     async (
       files: File[],
       onProgress?: (fileIndex: number, progress: number) => void,
+      onFileError?: (fileIndex: number, error: Error) => void,
     ) => {
       let folderId: string | undefined;
       let token: string | null = null;
@@ -325,24 +326,23 @@ export function useExplorer(
         }
       }
       if (!token || !folderId) return;
-      try {
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        try {
           await boxClient.uploadFile(token, folderId, file, (progress) => {
             onProgress?.(i, progress);
           });
+        } catch (err) {
+          onFileError?.(i, err as Error);
         }
-        if (navigation) {
-          await loadFolderContents(token, folderId);
-        } else {
-          await loadAllRoots();
-        }
-      } catch (err) {
-        handleError(err as Error);
-        throw err;
+      }
+      if (navigation) {
+        await loadFolderContents(token, folderId);
+      } else {
+        await loadAllRoots();
       }
     },
-    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, handleError],
+    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots],
   );
 
   // Map to track created folders to avoid duplicates
@@ -352,6 +352,7 @@ export function useExplorer(
     async (
       files: File[],
       onProgress?: (fileIndex: number, progress: number) => void,
+      onFileError?: (fileIndex: number, error: Error) => void,
     ) => {
       let rootFolderId: string | undefined;
       let token: string | null = null;
@@ -380,32 +381,33 @@ export function useExplorer(
           const fileName = parts.pop();
           if (!fileName) continue;
 
-          let parentId = rootFolderId;
-          let currentPath = '';
+          try {
+            let parentId = rootFolderId;
+            let currentPath = '';
 
-          // Create folder structure
-          for (const part of parts) {
-            currentPath = currentPath ? `${currentPath}/${part}` : part;
+            for (const part of parts) {
+              currentPath = currentPath ? `${currentPath}/${part}` : part;
 
-            if (folderCacheRef.current.has(currentPath)) {
-              parentId = folderCacheRef.current.get(currentPath)!;
-            } else {
-              const newFolder = await boxClient.createFolder(token, parentId, part);
-              folderCacheRef.current.set(currentPath, newFolder.id);
-              parentId = newFolder.id;
+              if (folderCacheRef.current.has(currentPath)) {
+                parentId = folderCacheRef.current.get(currentPath)!;
+              } else {
+                const newFolder = await boxClient.createFolder(token, parentId, part);
+                folderCacheRef.current.set(currentPath, newFolder.id);
+                parentId = newFolder.id;
 
-              // Map the new folder to token config
-              const config = itemTokenMapRef.current.get(rootFolderId);
-              if (config) {
-                itemTokenMapRef.current.set(newFolder.id, config);
+                const config = itemTokenMapRef.current.get(rootFolderId);
+                if (config) {
+                  itemTokenMapRef.current.set(newFolder.id, config);
+                }
               }
             }
-          }
 
-          // Upload file to the final folder
-          await boxClient.uploadFile(token, parentId, file, (progress) => {
-            onProgress?.(fileIndex, progress);
-          });
+            await boxClient.uploadFile(token, parentId, file, (progress) => {
+              onProgress?.(fileIndex, progress);
+            });
+          } catch (err) {
+            onFileError?.(fileIndex, err as Error);
+          }
         }
 
         if (navigation) {
@@ -413,14 +415,11 @@ export function useExplorer(
         } else {
           await loadAllRoots();
         }
-      } catch (err) {
-        handleError(err as Error);
-        throw err;
       } finally {
         folderCacheRef.current.clear();
       }
     },
-    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, handleError],
+    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots],
   );
 
   const createFolder = useCallback(
