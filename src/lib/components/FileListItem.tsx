@@ -25,9 +25,11 @@ function formatDate(dateStr?: string): string {
 interface FileListItemProps {
   item: BoxNode;
   onShowMenu: (e: React.MouseEvent, item: BoxNode) => void;
+  isSelected?: boolean;
+  onSelect?: (itemId: string, selected: boolean) => void;
 }
 
-export function FileListItem({ item, onShowMenu }: FileListItemProps) {
+export function FileListItem({ item, onShowMenu, isSelected = false, onSelect }: FileListItemProps) {
   const { openFolder, previewFile, getPermissionsForItem, readOnly } = useBoxExplorer();
 
   const perms = getPermissionsForItem(item.id);
@@ -44,6 +46,11 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
     }
   }, [item, openFolder, previewFile, perms.canPreview]);
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onSelect?.(item.id, e.target.checked);
+  };
+
   const handleDotsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onShowMenu(e, item);
@@ -51,7 +58,7 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
 
   return (
     <div
-      className={styles.fileListItem}
+      className={`${styles.fileListItem} ${isSelected ? styles.fileListItemSelected : ''}`}
       onClick={handleClick}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -59,6 +66,13 @@ export function FileListItem({ item, onShowMenu }: FileListItemProps) {
       }}
       data-type={item.type}
     >
+      <input
+        type="checkbox"
+        className={styles.itemCheckbox}
+        checked={isSelected}
+        onChange={handleCheckboxChange}
+        onClick={(e) => e.stopPropagation()}
+      />
       <div className={styles.fileListItemName}>
         <FileIcon item={item} size={20} className={styles.itemIcon} />
         <span className={styles.fileName}>{item.name}</span>

@@ -7,9 +7,11 @@ import styles from '../styles/explorer.module.css';
 interface GridItemProps {
   item: BoxNode;
   onShowMenu: (e: React.MouseEvent, item: BoxNode) => void;
+  isSelected?: boolean;
+  onSelect?: (itemId: string, selected: boolean) => void;
 }
 
-export function GridItem({ item, onShowMenu }: GridItemProps) {
+export function GridItem({ item, onShowMenu, isSelected = false, onSelect }: GridItemProps) {
   const { openFolder, previewFile, getPermissionsForItem, getTokenForItem, readOnly } =
     useBoxExplorer();
 
@@ -27,13 +29,29 @@ export function GridItem({ item, onShowMenu }: GridItemProps) {
     }
   }, [item, openFolder, previewFile, perms.canPreview]);
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onSelect?.(item.id, e.target.checked);
+  };
+
   const handleDotsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onShowMenu(e, item);
   };
 
   return (
-    <div className={styles.gridItem} onClick={handleClick} data-type={item.type}>
+    <div
+      className={`${styles.gridItem} ${isSelected ? styles.gridItemSelected : ''}`}
+      onClick={handleClick}
+      data-type={item.type}
+    >
+      <input
+        type="checkbox"
+        className={styles.gridItemCheckbox}
+        checked={isSelected}
+        onChange={handleCheckboxChange}
+        onClick={(e) => e.stopPropagation()}
+      />
       <div className={styles.gridThumbnail}>
         {isFile ? (
           <FileThumbnail fileId={item.id} token={getTokenForItem(item.id)} item={item} />

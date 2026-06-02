@@ -26,9 +26,12 @@ export function FileList() {
     item: BoxNode;
   } | null>(null);
   const [deletingItem, setDeletingItem] = useState<BoxNode | null>(null);
+  const [deletingItems, setDeletingItems] = useState<BoxNode[]>([]);
   const [renamingItem, setRenamingItem] = useState<BoxNode | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const menuRef = useRef<HTMLDivElement>(null);
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const handleShowMenu = useCallback(
     (e: React.MouseEvent, item: BoxNode) => {
@@ -108,6 +111,46 @@ export function FileList() {
     }
   };
 
+  const handleBatchDelete = () => {
+    const itemsToDelete = items.filter((item) => selectedIds.has(item.id));
+    if (itemsToDelete.length > 0) {
+      setDeletingItems(itemsToDelete);
+    }
+  };
+
+  const handleBatchDeleteConfirm = async () => {
+    setActionLoading(true);
+    try {
+      for (const item of deletingItems) {
+        await deleteItem(item);
+      }
+      setDeletingItems([]);
+      setSelectedIds(new Set());
+    } catch {
+      // handled in provider
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSelectItem = (itemId: string, selected: boolean) => {
+    const newSelected = new Set(selectedIds);
+    if (selected) {
+      newSelected.add(itemId);
+    } else {
+      newSelected.delete(itemId);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map((item) => item.id)));
+    }
+  };
+
   const handleDownload = () => {
     if (!contextMenu) return;
     const item = contextMenu.item;
@@ -136,6 +179,18 @@ export function FileList() {
       .catch((err) => console.error('Download error:', err));
   };
 
+  const hasSelection = selectedIds.size > 0;
+  const allSelected = selectedIds.size === items.length && items.length > 0;
+  const canDeleteSelected = !readOnly && selectedIds.size > 0 && Array.from(selectedIds).every(
+    (id) => getPermissionsForItem(id).canDelete
+  );
+
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = !allSelected && hasSelection;
+    }
+  }, [allSelected, hasSelection]);
+
   if (isLoading && items.length === 0) {
     return (
       <div className={styles.loadingState}>
@@ -158,22 +213,67 @@ export function FileList() {
 
   return (
     <div className={styles.fileList}>
+      {hasSelection && (
+        <div className={styles.selectionBar}>
+          <span className={styles.selectionCount}>
+            {selectedIds.size} {selectedIds.size === 1 ? 'item' : 'items'} selected
+          </span>
+          {canDeleteSelected && (
+            <button
+              className={`${styles.selectionBtn} ${styles.selectionBtnDanger}`}
+              onClick={handleBatchDelete}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M5.5 0.5v1h-4v2h13v-2h-4v-1h-5zM2.5 5l1 10h9l1-10h-11zm3.5 1.5h1v7h-1v-7zm3 0h1v7h-1v-7z" />
+              </svg>
+              Delete
+            </button>
+          )}
+          <button
+            className={styles.selectionBtn}
+            onClick={() => setSelectedIds(new Set())}
+            title="Clear selection"
+          >
+            Clear
+          </button>
+        </div>
+      )}
       {viewMode === 'list' ? (
         <>
           <div className={styles.fileListHeader}>
+            <input
+              ref={headerCheckboxRef}
+              type="checkbox"
+              className={styles.headerCheckbox}
+              checked={allSelected}
+              onChange={handleSelectAll}
+              title={allSelected ? 'Deselect all' : 'Select all'}
+            />
             <span className={styles.headerName}>Name</span>
             <span className={styles.headerDate}>Modified</span>
             <span className={styles.headerSize}>Size</span>
             <span className={styles.headerActions} />
           </div>
           {items.map((item) => (
-            <FileListItem key={item.id} item={item} onShowMenu={handleShowMenu} />
+            <FileListItem
+              key={item.id}
+              item={item}
+              onShowMenu={handleShowMenu}
+              isSelected={selectedIds.has(item.id)}
+              onSelect={handleSelectItem}
+            />
           ))}
         </>
       ) : (
         <div className={styles.gridView}>
           {items.map((item) => (
-            <GridItem key={item.id} item={item} onShowMenu={handleShowMenu} />
+            <GridItem
+              key={item.id}
+              item={item}
+              onShowMenu={handleShowMenu}
+              isSelected={selectedIds.has(item.id)}
+              onSelect={handleSelectItem}
+            />
           ))}
         </div>
       )}
@@ -247,6 +347,19 @@ export function FileList() {
           loading={actionLoading}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeletingItem(null)}
+        />
+      )}
+
+      {/* Batch delete confirmation modal */}
+      {deletingItems.length > 0 && (
+        <ConfirmModal
+          title="Delete Multiple Items"
+          message={`Are you sure you want to delete ${deletingItems.length} ${deletingItems.length === 1 ? 'item' : 'items'}? This action cannot be undone.`}
+          confirmLabel="Delete All"
+          danger
+          loading={actionLoading}
+          onConfirm={handleBatchDeleteConfirm}
+          onCancel={() => setDeletingItems([])}
         />
       )}
 

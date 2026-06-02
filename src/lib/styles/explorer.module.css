@@ -1066,3 +1066,110 @@
 .uploadMenuItem svg {
   flex-shrink: 0;
 }
+
+/* ===== Selection Bar ===== */
+.selectionBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #f0f4f8;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.selectionCount {
+  font-weight: 500;
+  color: #222;
+}
+
+.selectionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #222;
+  transition: all 0.15s;
+}
+
+.selectionBtn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.selectionBtnDanger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.selectionBtnDanger:hover {
+  background: #fecaca;
+  border-color: #f87171;
+}
+
+.selectionBtn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ===== Selection Checkboxes ===== */
+.headerCheckbox,
+.itemCheckbox,
+.gridItemCheckbox {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #0061d5;
+}
+
+.headerCheckbox {
+  margin-right: 4px;
+}
+
+.itemCheckbox {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.gridItemCheckbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 20px;
+  height: 20px;
+  z-index: 10;
+}
+
+/* ===== File List Item Selected ===== */
+.fileListItemSelected {
+  background: #f0f4f8;
+}
+
+.fileListItemSelected:hover {
+  background: #e8eef5;
+}
+
+/* ===== Grid Item Selected ===== */
+.gridItemSelected {
+  position: relative;
+}
+
+.gridItemSelected::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 97, 213, 0.08);
+  border: 2px solid #0061d5;
+  border-radius: 6px;
+  pointer-events: none;
+}
