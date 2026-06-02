@@ -1,6 +1,12 @@
 /* ===== Explorer Container ===== */
 .explorer {
-  font-family: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Lato",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 13px;
   color: #222;
   background: #fff;
@@ -29,9 +35,15 @@
 }
 
 @keyframes barSlide {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(200%); }
-  100% { transform: translateX(-100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(200%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
 }
 
 /* ===== Error Banner ===== */
@@ -239,7 +251,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== Root Folder List ===== */
@@ -484,7 +498,9 @@
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
   background: #fff;
 }
 
@@ -536,8 +552,12 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .gridItemFooter {
@@ -585,7 +605,9 @@
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.12),
+    0 1px 4px rgba(0, 0, 0, 0.08);
   z-index: 1000;
   min-width: 160px;
   padding: 4px 0;
@@ -593,8 +615,14 @@
 }
 
 @keyframes menuFadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .contextMenuItem {
@@ -685,8 +713,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .previewModal {
@@ -1122,8 +1154,8 @@
 .headerCheckbox,
 .itemCheckbox,
 .gridItemCheckbox {
-  width: 18px;
-  height: 18px;
+  width: 12px;
+  height: 12px;
   margin: 0;
   cursor: pointer;
   accent-color: #0061d5;
@@ -1162,7 +1194,7 @@
 }
 
 .gridItemSelected::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
