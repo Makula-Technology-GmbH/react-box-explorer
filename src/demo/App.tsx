@@ -30,7 +30,7 @@ export function App() {
         canPreview: true,
         canDownload: true,
         canRename: true,
-      canDelete: true,
+        canDelete: true,
       },
     ]);
 
@@ -153,9 +153,34 @@ export function App() {
                 &times;
               </button>
             )}
-            <div style={{ display: "flex", gap: 10, marginLeft: 4, fontSize: 11, color: "#666" }}>
-              {(["canUpload", "canCreateFolder", "canPreview", "canDownload", "canRename", "canDelete"] as const).map((perm) => (
-                <label key={perm} style={{ display: "flex", alignItems: "center", gap: 3, cursor: "pointer" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                marginLeft: 4,
+                fontSize: 11,
+                color: "#666",
+              }}
+            >
+              {(
+                [
+                  "canUpload",
+                  "canCreateFolder",
+                  "canPreview",
+                  "canDownload",
+                  "canRename",
+                  "canDelete",
+                ] as const
+              ).map((perm) => (
+                <label
+                  key={perm}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 3,
+                    cursor: "pointer",
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={row[perm]}
@@ -208,6 +233,7 @@ export function App() {
           onActionComplete={(action, item) =>
             console.log(`Action: ${action}`, item)
           }
+          useBoxUploader
           entityName="Machine"
         />
       ) : (
