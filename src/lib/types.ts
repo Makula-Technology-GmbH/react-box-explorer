@@ -57,6 +57,8 @@ export interface BoxExplorerProps {
   fullScreenPreview?: boolean;
   /** If false, hides the grid view toggle (default: true) */
   allowGridView?: boolean;
+  /** If true, use Box's native uploader instead of built-in file/folder upload */
+  useBoxUploader?: boolean;
   height?: number | string;
   onError?: (error: Error) => void;
   onFilePreview?: (fileId: string, token: string) => void;
@@ -130,6 +132,8 @@ export interface BoxExplorerContextValue {
   viewMode: 'list' | 'grid';
   /** Set the view mode */
   setViewMode: (mode: 'list' | 'grid') => void;
+  /** Use Box's native uploader */
+  useBoxUploader: boolean;
   /** Rename an item */
   renameItem: (item: BoxNode, newName: string) => Promise<void>;
   /** Delete an item */

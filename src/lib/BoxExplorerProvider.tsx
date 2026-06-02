@@ -14,7 +14,7 @@ export function useBoxExplorer() {
 
 interface ProviderProps extends Pick<
   BoxExplorerProps,
-  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview' | 'allowGridView'
+  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview' | 'allowGridView' | 'useBoxUploader'
 > {
   children: React.ReactNode;
 }
@@ -26,6 +26,7 @@ export function BoxExplorerProvider({
   entityName = 'All Files',
   fullScreenPreview = false,
   allowGridView = true,
+  useBoxUploader = false,
   readOnly = false,
   children,
 }: ProviderProps) {
@@ -112,6 +113,7 @@ export function BoxExplorerProvider({
       entityName,
       fullScreenPreview,
       allowGridView,
+      useBoxUploader,
       viewMode,
       setViewMode,
       readOnly,
@@ -128,6 +130,7 @@ export function BoxExplorerProvider({
       entityName,
       fullScreenPreview,
       allowGridView,
+      useBoxUploader,
       viewMode,
       readOnly,
     ],

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useBoxExplorer } from '../BoxExplorerProvider';
 import { UploadProgressModal, type UploadItem } from './UploadProgressModal';
+import { BoxUploader } from './BoxUploader';
 import styles from '../styles/explorer.module.css';
 
 export function Toolbar() {
@@ -14,6 +15,7 @@ export function Toolbar() {
     canUpload,
     canCreateFolder: canCreate,
     allowGridView,
+    useBoxUploader,
     viewMode,
     setViewMode,
   } = useBoxExplorer();
@@ -163,48 +165,52 @@ export function Toolbar() {
       )}
       {showUploadBtn && (
         <>
-          <div style={{ position: 'relative' }}>
-            <button
-              className={styles.toolbarBtn}
-              onClick={() => setShowUploadMenu(!showUploadMenu)}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className={styles.spinning}
-                >
-                  <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
-                  <path d="M2 12v2h12v-2H2z" />
-                </svg>
-              )}
-              {isUploading ? 'Uploading...' : 'Upload'}
-            </button>
-            {showUploadMenu && (
-              <div className={styles.uploadMenu}>
-                <button className={styles.uploadMenuItem} onClick={handleFileUploadClick}>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          {useBoxUploader ? (
+            <BoxUploader />
+          ) : (
+            <div style={{ position: 'relative' }}>
+              <button
+                className={styles.toolbarBtn}
+                onClick={() => setShowUploadMenu(!showUploadMenu)}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    className={styles.spinning}
+                  >
+                    <path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 012 8a6 6 0 016-6c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
                     <path d="M2 12v2h12v-2H2z" />
                   </svg>
-                  Upload Files
-                </button>
-                <button className={styles.uploadMenuItem} onClick={handleFolderUploadClick}>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M1 2h5l2 2h6v2h-1V5H7.5L5.5 3H2v10h6v1H1V2z" />
-                  </svg>
-                  Upload Folders
-                </button>
-              </div>
-            )}
-          </div>
+                )}
+                {isUploading ? 'Uploading...' : 'Upload'}
+              </button>
+              {showUploadMenu && (
+                <div className={styles.uploadMenu}>
+                  <button className={styles.uploadMenuItem} onClick={handleFileUploadClick}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 1L4 5.5h2.5V10h3V5.5H12L8 1z" />
+                      <path d="M2 12v2h12v-2H2z" />
+                    </svg>
+                    Upload Files
+                  </button>
+                  <button className={styles.uploadMenuItem} onClick={handleFolderUploadClick}>
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M1 2h5l2 2h6v2h-1V5H7.5L5.5 3H2v10h6v1H1V2z" />
+                    </svg>
+                    Upload Folders
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <input
             ref={fileInputRef}
             type="file"
