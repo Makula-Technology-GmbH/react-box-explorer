@@ -31,7 +31,6 @@ export function FileList() {
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const menuRef = useRef<HTMLDivElement>(null);
-  const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const handleShowMenu = useCallback(
     (e: React.MouseEvent, item: BoxNode) => {
@@ -185,11 +184,14 @@ export function FileList() {
     (id) => getPermissionsForItem(id).canDelete
   );
 
-  useEffect(() => {
-    if (headerCheckboxRef.current) {
-      headerCheckboxRef.current.indeterminate = !allSelected && hasSelection;
-    }
-  }, [allSelected, hasSelection]);
+  const handleHeaderCheckboxRef = useCallback(
+    (input: HTMLInputElement | null) => {
+      if (input) {
+        input.indeterminate = !allSelected && hasSelection;
+      }
+    },
+    [allSelected, hasSelection],
+  );
 
   if (isLoading && items.length === 0) {
     return (
@@ -242,7 +244,7 @@ export function FileList() {
         <>
           <div className={styles.fileListHeader}>
             <input
-              ref={headerCheckboxRef}
+              ref={handleHeaderCheckboxRef}
               type="checkbox"
               className={styles.headerCheckbox}
               checked={allSelected}
