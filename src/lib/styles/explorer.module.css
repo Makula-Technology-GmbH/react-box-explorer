@@ -163,6 +163,18 @@
   cursor: not-allowed;
 }
 
+@media (max-width: 640px) {
+  .toolbarBtn {
+    padding: 6px 8px;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .toolbarBtn svg {
+    margin: 0;
+  }
+}
+
 /* ===== New Folder Popover ===== */
 .newFolderPopover {
   position: absolute;
