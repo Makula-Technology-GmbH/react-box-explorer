@@ -200,7 +200,7 @@ export function Toolbar() {
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M1 2h5l2 2h6v2h-1V5H7.5L5.5 3H2v10h6v1H1V2z" />
                   </svg>
-                  Upload Folder
+                  Upload Folders
                 </button>
               </div>
             )}
