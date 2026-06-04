@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { BoxNode } from '../types';
 import { FileIcon } from './FileIcon';
 import styles from '../styles/explorer.module.css';
@@ -149,16 +149,28 @@ function BoxPreviewEmbed({
     };
   }, [fileId, accessToken]);
 
+  // Overlay styles: keep the Box container laid out at full size at all times so
+  // Box can measure it correctly. The spinner/error sit on top instead of
+  // toggling the container's `display` (which would render Box into a 0×0 box).
+  const overlayStyle: CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    background: '#fff',
+    zIndex: 1,
+  };
+
   return (
     <>
+      {/* Container is ALWAYS rendered/visible so Box measures real dimensions */}
+      <div ref={containerRef} className={styles.previewContent} />
       {status === 'loading' && (
-        <div className={styles.loadingState}>
+        <div className={styles.loadingState} style={overlayStyle}>
           <div className={styles.loadingSpinner} />
           <span>Loading preview...</span>
         </div>
       )}
       {status === 'error' && (
-        <div className={styles.loadingState}>
+        <div className={styles.loadingState} style={overlayStyle}>
           <svg width="32" height="32" viewBox="0 0 16 16" fill="#d32f2f">
             <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3h1v5h-1V4zm0 6h1v1h-1v-1z" />
           </svg>
@@ -167,11 +179,6 @@ function BoxPreviewEmbed({
           </span>
         </div>
       )}
-      <div
-        ref={containerRef}
-        className={styles.previewContent}
-        style={{ display: status === 'loading' ? 'none' : 'block' }}
-      />
     </>
   );
 }
