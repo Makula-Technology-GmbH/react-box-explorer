@@ -267,17 +267,33 @@ export function FileList() {
           ))}
         </>
       ) : (
-        <div className={styles.gridView}>
-          {items.map((item) => (
-            <GridItem
-              key={item.id}
-              item={item}
-              onShowMenu={handleShowMenu}
-              isSelected={selectedIds.has(item.id)}
-              onSelect={handleSelectItem}
+        <>
+          <div className={styles.gridViewHeader}>
+            <input
+              ref={handleHeaderCheckboxRef}
+              type="checkbox"
+              className={styles.headerCheckbox}
+              checked={allSelected}
+              onChange={handleSelectAll}
+              title={allSelected ? 'Deselect all' : 'Select all'}
+              id="grid-select-all"
             />
-          ))}
-        </div>
+            <label htmlFor="grid-select-all" className={styles.gridViewHeaderLabel}>
+              {allSelected ? 'Deselect all' : 'Select all'}
+            </label>
+          </div>
+          <div className={styles.gridView}>
+            {items.map((item) => (
+              <GridItem
+                key={item.id}
+                item={item}
+                onShowMenu={handleShowMenu}
+                isSelected={selectedIds.has(item.id)}
+                onSelect={handleSelectItem}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       {/* Context menu */}
