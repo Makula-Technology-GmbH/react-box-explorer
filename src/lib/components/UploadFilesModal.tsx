@@ -30,6 +30,8 @@ export function UploadFilesModal({
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannedCount, setScannedCount] = useState(0);
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -38,9 +40,17 @@ export function UploadFilesModal({
   };
 
   const handleFolderInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setSelectedFiles((prev) => [...prev, ...files]);
-    if (folderInputRef.current) folderInputRef.current.value = '';
+    const input = e.target;
+    setIsScanning(true);
+    setScannedCount(0);
+    // Defer to next tick so the loader paints before the (potentially
+    // expensive) Array.from over a large FileList runs synchronously.
+    setTimeout(() => {
+      const files = Array.from(input.files || []);
+      setSelectedFiles((prev) => [...prev, ...files]);
+      if (folderInputRef.current) folderInputRef.current.value = '';
+      setIsScanning(false);
+    }, 0);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -113,6 +123,7 @@ export function UploadFilesModal({
           });
         }
         collected.push(file);
+        setScannedCount(collected.length + directFiles.length);
       } else if (entry.isDirectory) {
         const reader = entry.createReader();
         const subEntries = await readAllDirEntries(reader);
@@ -122,12 +133,18 @@ export function UploadFilesModal({
       }
     };
 
+    setIsScanning(true);
+    setScannedCount(directFiles.length);
     (async () => {
       const collectedFiles: File[] = [...directFiles];
-      for (const entry of entries) {
-        await traverseEntry(entry, '', collectedFiles);
+      try {
+        for (const entry of entries) {
+          await traverseEntry(entry, '', collectedFiles);
+        }
+        setSelectedFiles((prev) => [...prev, ...collectedFiles]);
+      } finally {
+        setIsScanning(false);
       }
-      setSelectedFiles((prev) => [...prev, ...collectedFiles]);
     })();
   };
 
@@ -192,6 +209,29 @@ export function UploadFilesModal({
                   overflow: 'auto',
                 }}
               >
+                {isScanning ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '12px',
+                      color: '#666',
+                    }}
+                  >
+                    <div className={styles.loadingSpinner} />
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#333' }}>
+                      Scanning files...
+                    </div>
+                    {scannedCount > 0 && (
+                      <div style={{ fontSize: '12px', color: '#888' }}>
+                        {scannedCount.toLocaleString()} file
+                        {scannedCount === 1 ? '' : 's'} found
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
                 <svg
                   width="48"
                   height="48"
@@ -243,7 +283,7 @@ export function UploadFilesModal({
                 </div>
 
                 {/* Selected Files List - shown within drag zone if files exist */}
-                {selectedFiles.length > 0 && (
+                {selectedFiles.length > 0 && !isScanning && (
                   <div style={{ marginTop: '24px', width: '100%', maxWidth: '350px' }}>
                     <div
                       style={{
@@ -305,6 +345,8 @@ export function UploadFilesModal({
                       ))}
                     </div>
                   </div>
+                )}
+                  </>
                 )}
               </div>
             </>
@@ -464,14 +506,14 @@ export function UploadFilesModal({
               </button>
               <button
                 onClick={handleUpload}
-                disabled={selectedFiles.length === 0}
+                disabled={selectedFiles.length === 0 || isScanning}
                 style={{
                   padding: '6px 16px',
                   border: 'none',
                   borderRadius: '4px',
-                  background: selectedFiles.length === 0 ? '#ccc' : '#0061d5',
+                  background: selectedFiles.length === 0 || isScanning ? '#ccc' : '#0061d5',
                   color: '#fff',
-                  cursor: selectedFiles.length === 0 ? 'not-allowed' : 'pointer',
+                  cursor: selectedFiles.length === 0 || isScanning ? 'not-allowed' : 'pointer',
                   fontSize: '13px',
                   fontWeight: 600,
                 }}
