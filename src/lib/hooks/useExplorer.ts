@@ -43,13 +43,18 @@ export function useExplorer(
   // when navigating into subfolders
   const itemTokenMapRef = useRef<Map<string, FolderConfig>>(new Map());
 
-  const handleError = useCallback(
-    (err: Error) => {
-      setError(err);
-      onError?.(err);
-    },
-    [onError],
-  );
+  // Keep the latest folders/onError in refs so internal callbacks stay
+  // referentially stable even when the consumer passes new references
+  // (e.g. an inline array/callback recreated on every parent render)
+  const foldersRef = useRef(folders);
+  foldersRef.current = folders;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
+  const handleError = useCallback((err: Error) => {
+    setError(err);
+    onErrorRef.current?.(err);
+  }, []);
 
   const loadFolderContents = useCallback(
     async (token: string, folderId: string) => {
@@ -99,7 +104,7 @@ export function useExplorer(
 
     try {
       const allNodes: BoxNode[] = [];
-      for (const config of folders) {
+      for (const config of foldersRef.current) {
         const entries = await boxClient.listAllFolderItems(config.token, config.folderId);
         if (controller.signal.aborted) return;
         const nodes = entries.map(boxItemToNode);
@@ -124,14 +129,19 @@ export function useExplorer(
         setIsLoading(false);
       }
     }
-  }, [folders, handleError]);
+  }, [handleError]);
 
-  // Auto-load all folder contents on mount
+  // Auto-load all folder contents on mount, and reload only when the folder
+  // set actually changes by content — a new array reference with the same
+  // folders (e.g. an inline literal recreated on every parent render) must
+  // not reset navigation or refetch
+  const foldersKey = JSON.stringify(folders);
   useEffect(() => {
-    if (folders.length > 0) {
+    if (foldersRef.current.length > 0) {
       loadAllRoots();
     }
-  }, [loadAllRoots]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foldersKey, loadAllRoots]);
 
   const enterRoot = useCallback(
     async (config: FolderConfig) => {
