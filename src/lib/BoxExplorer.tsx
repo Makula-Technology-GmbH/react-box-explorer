@@ -19,6 +19,7 @@ function ExplorerInner({
     fullScreenPreview,
     error,
     isLoading,
+    baseUrl,
   } = useBoxExplorer();
 
   const previewToken = previewingFile
@@ -58,6 +59,7 @@ function ExplorerInner({
         <PreviewModal
           file={previewingFile}
           accessToken={previewToken}
+          baseUrl={baseUrl}
           canDownload={previewCanDownload}
           fullScreen={fullScreenPreview}
           onClose={closePreview}
@@ -69,6 +71,8 @@ function ExplorerInner({
 
 export function BoxExplorer({
   folders,
+  baseUrl,
+  uploadBaseUrl,
   entityName,
   fullScreenPreview,
   allowGridView,
@@ -83,6 +87,8 @@ export function BoxExplorer({
   return (
     <BoxExplorerProvider
       folders={folders}
+      baseUrl={baseUrl}
+      uploadBaseUrl={uploadBaseUrl}
       onError={onError}
       onActionComplete={onActionComplete}
       entityName={entityName}

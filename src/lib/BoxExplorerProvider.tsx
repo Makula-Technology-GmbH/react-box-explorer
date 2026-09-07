@@ -14,13 +14,15 @@ export function useBoxExplorer() {
 
 interface ProviderProps extends Pick<
   BoxExplorerProps,
-  'folders' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview' | 'allowGridView' | 'useBoxUploader'
+  'folders' | 'baseUrl' | 'uploadBaseUrl' | 'onError' | 'onActionComplete' | 'readOnly' | 'entityName' | 'fullScreenPreview' | 'allowGridView' | 'useBoxUploader'
 > {
   children: React.ReactNode;
 }
 
 export function BoxExplorerProvider({
   folders,
+  baseUrl,
+  uploadBaseUrl,
   onError,
   onActionComplete,
   entityName = 'All Files',
@@ -30,7 +32,7 @@ export function BoxExplorerProvider({
   readOnly = false,
   children,
 }: ProviderProps) {
-  const explorer = useExplorer(folders, onError);
+  const explorer = useExplorer(folders, onError, { baseUrl, uploadBaseUrl });
   const [previewingFile, setPreviewingFile] = useState<BoxNode | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
@@ -89,6 +91,9 @@ export function BoxExplorerProvider({
   const value = useMemo<BoxExplorerContextValue>(
     () => ({
       folders,
+      baseUrl: explorer.boxClient.baseUrl,
+      uploadBaseUrl: explorer.boxClient.uploadBaseUrl,
+      client: explorer.boxClient,
       navigation: explorer.navigation,
       items: explorer.items,
       isLoading: explorer.isLoading,
@@ -126,6 +131,7 @@ export function BoxExplorerProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       folders,
+      explorer.boxClient,
       explorer.navigation,
       explorer.items,
       explorer.isLoading,

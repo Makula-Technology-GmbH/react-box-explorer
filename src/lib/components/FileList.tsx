@@ -18,6 +18,7 @@ export function FileList() {
     getTokenForItem,
     getPermissionsForItem,
     viewMode,
+    client,
   } = useBoxExplorer();
 
   const [contextMenu, setContextMenu] = useState<{
@@ -158,13 +159,8 @@ export function FileList() {
     if (!token) return;
     setContextMenu(null);
 
-    fetch(`https://api.box.com/2.0/files/${item.id}/content`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Download failed');
-        return res.blob();
-      })
+    client
+      .downloadFile(token, item.id)
       .then((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

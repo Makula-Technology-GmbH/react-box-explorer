@@ -1,3 +1,5 @@
+import type { BoxClient } from './api/boxClient';
+
 /** A root folder entry with its own Box access token */
 export interface FolderConfig {
   folderId: string;
@@ -51,6 +53,16 @@ export interface NavigationState {
 /** Props for the main exported component */
 export interface BoxExplorerProps {
   folders: FolderConfig[];
+  /**
+   * Base URL for all Box API calls.
+   * Defaults to `https://api.box.com/2.0`.
+   */
+  baseUrl?: string;
+  /**
+   * Base URL for file uploads. Defaults to `https://upload.box.com/api/2.0`
+   * when `baseUrl` is left at its default, otherwise defaults to `baseUrl`.
+   */
+  uploadBaseUrl?: string;
   /** Display name for the root breadcrumb (defaults to "All Files") */
   entityName?: string;
   /** If true, the file preview modal fills the entire viewport */
@@ -100,6 +112,12 @@ export interface BoxFolder {
 export interface BoxExplorerContextValue {
   /** All root folder configs */
   folders: FolderConfig[];
+  /** Resolved base URL for Box API calls */
+  baseUrl: string;
+  /** Resolved base URL for uploads */
+  uploadBaseUrl: string;
+  /** Box API client bound to the resolved base URLs */
+  client: BoxClient;
   /** Current navigation state (null = showing root selector) */
   navigation: NavigationState | null;
   /** Items in the current folder view */

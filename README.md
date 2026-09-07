@@ -61,6 +61,8 @@ function App() {
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `folders` | `FolderConfig[]` | *required* | Array of Box folder configurations |
+| `baseUrl` | `string` | `"https://api.box.com/2.0"` | Base URL for all Box API calls (point it at a proxy if you don't call Box directly) |
+| `uploadBaseUrl` | `string` | `"https://upload.box.com/api/2.0"` | Base URL for uploads. Falls back to `baseUrl` when `baseUrl` is customized |
 | `entityName` | `string` | `"All Files"` | Display name for the root breadcrumb |
 | `height` | `number \| string` | `500` | Height of the explorer container |
 | `readOnly` | `boolean` | `false` | Disable all write operations (upload, rename, delete, create folder) |
@@ -123,6 +125,46 @@ You can display contents from multiple Box folders merged into a single view. Ea
   entityName="All Teams"
 />
 ```
+
+## Custom base URL
+
+By default every request goes straight to Box (`https://api.box.com/2.0`, and
+`https://upload.box.com/api/2.0` for uploads). Pass `baseUrl` to route requests
+through your own backend/proxy instead:
+
+```tsx
+<BoxExplorer
+  folders={[{ folderId: '123', token: 'PROXY_TOKEN' }]}
+  baseUrl="https://api.example.com/box/2.0"
+/>
+```
+
+Notes:
+
+- Paths are appended verbatim to `baseUrl` (`/folders/:id/items`, `/files/:id`,
+  `/files/:id/content`, …), so the proxy must mirror Box's API shape.
+- When `baseUrl` is customized, uploads go to the same host unless you also
+  pass `uploadBaseUrl`. Set both explicitly to split them:
+
+  ```tsx
+  <BoxExplorer
+    folders={folders}
+    baseUrl="https://api.example.com/box/2.0"
+    uploadBaseUrl="https://upload.example.com/box/2.0"
+  />
+  ```
+- `baseUrl` is also forwarded to the Box Content Preview SDK as its `apiHost`
+  (with the trailing `/2.0` stripped). The SDK bundle itself is still loaded
+  from `cdn01.boxcdn.net`, and thumbnail/representation content URLs are used as
+  returned by the API.
+- The defaults are exported if you need them:
+
+  ```ts
+  import {
+    DEFAULT_BOX_BASE_URL,
+    DEFAULT_BOX_UPLOAD_BASE_URL,
+  } from 'react-box-explorer';
+  ```
 
 ## Exported Types
 

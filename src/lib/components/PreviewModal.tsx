@@ -1,20 +1,30 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { BoxNode } from '../types';
+import { DEFAULT_BASE_URL } from '../api/boxClient';
 import { FileIcon } from './FileIcon';
 import styles from '../styles/explorer.module.css';
 
 interface PreviewModalProps {
   file: BoxNode;
   accessToken: string;
+  /** Base URL for Box API calls (defaults to Box's public API) */
+  baseUrl?: string;
   canDownload?: boolean;
   fullScreen?: boolean;
   onClose: () => void;
 }
 
-export function PreviewModal({ file, accessToken, canDownload = true, fullScreen = false, onClose }: PreviewModalProps) {
+export function PreviewModal({
+  file,
+  accessToken,
+  baseUrl = DEFAULT_BASE_URL,
+  canDownload = true,
+  fullScreen = false,
+  onClose,
+}: PreviewModalProps) {
   const handleDownload = () => {
     // Box API download endpoint — triggers a redirect to a download URL
-    const url = `https://api.box.com/2.0/files/${file.id}/content`;
+    const url = `${baseUrl}/files/${file.id}/content`;
     const link = document.createElement('a');
     link.href = url;
     link.style.display = 'none';
@@ -78,7 +88,7 @@ export function PreviewModal({ file, accessToken, canDownload = true, fullScreen
           </div>
         </div>
         <div className={styles.previewContainer}>
-          <BoxPreviewEmbed fileId={file.id} accessToken={accessToken} />
+          <BoxPreviewEmbed fileId={file.id} accessToken={accessToken} baseUrl={baseUrl} />
         </div>
       </div>
     </div>
@@ -89,9 +99,11 @@ export function PreviewModal({ file, accessToken, canDownload = true, fullScreen
 function BoxPreviewEmbed({
   fileId,
   accessToken,
+  baseUrl,
 }: {
   fileId: string;
   accessToken: string;
+  baseUrl: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -117,6 +129,8 @@ function BoxPreviewEmbed({
 
         const preview = new BoxPreview();
         preview.show(fileId, accessToken, {
+          // Box Preview wants the host without the `/2.0` API version suffix
+          apiHost: baseUrl.replace(/\/2\.0$/, ''),
           container: containerRef.current,
           showDownload: true,
           showPrint: true,
@@ -147,7 +161,7 @@ function BoxPreviewEmbed({
         previewInstance.current = null;
       }
     };
-  }, [fileId, accessToken]);
+  }, [fileId, accessToken, baseUrl]);
 
   // Overlay styles: keep the Box container laid out at full size at all times so
   // Box can measure it correctly. The spinner/error sit on top instead of

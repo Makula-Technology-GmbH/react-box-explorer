@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import type {
   FolderConfig,
   BoxNode,
@@ -7,7 +7,7 @@ import type {
   BreadcrumbEntry,
   ItemPermissions,
 } from '../types';
-import * as boxClient from '../api/boxClient';
+import { createBoxClient, type BoxClientConfig } from '../api/boxClient';
 
 function boxItemToNode(item: BoxItem): BoxNode {
   return {
@@ -32,7 +32,13 @@ function sortNodes(nodes: BoxNode[]): BoxNode[] {
 export function useExplorer(
   folders: FolderConfig[],
   onError?: (error: Error) => void,
+  clientConfig: BoxClientConfig = {},
 ) {
+  const { baseUrl, uploadBaseUrl } = clientConfig;
+  const boxClient = useMemo(
+    () => createBoxClient({ baseUrl, uploadBaseUrl }),
+    [baseUrl, uploadBaseUrl],
+  );
   const [navigation, setNavigation] = useState<NavigationState | null>(null);
   const [items, setItems] = useState<BoxNode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +95,7 @@ export function useExplorer(
         }
       }
     },
-    [handleError],
+    [handleError, boxClient],
   );
 
   // Load all folders' contents merged on mount
@@ -129,7 +135,7 @@ export function useExplorer(
         setIsLoading(false);
       }
     }
-  }, [handleError]);
+  }, [handleError, boxClient]);
 
   // Auto-load all folder contents on mount, and reload only when the folder
   // set actually changes by content — a new array reference with the same
@@ -162,7 +168,7 @@ export function useExplorer(
 
       loadFolderContents(config.token, config.folderId);
     },
-    [loadFolderContents],
+    [loadFolderContents, boxClient],
   );
 
   const openFolder = useCallback(
@@ -295,7 +301,7 @@ export function useExplorer(
         throw err;
       }
     },
-    [getTokenForItem, handleError],
+    [getTokenForItem, handleError, boxClient],
   );
 
   const deleteItem = useCallback(
@@ -314,7 +320,7 @@ export function useExplorer(
         throw err;
       }
     },
-    [getTokenForItem, handleError],
+    [getTokenForItem, handleError, boxClient],
   );
 
   const uploadFiles = useCallback(
@@ -352,7 +358,7 @@ export function useExplorer(
         await loadAllRoots();
       }
     },
-    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots],
+    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, boxClient],
   );
 
   // Map to track created folders to avoid duplicates
@@ -429,7 +435,7 @@ export function useExplorer(
         folderCacheRef.current.clear();
       }
     },
-    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots],
+    [navigation, getTokenForItem, folders, loadFolderContents, loadAllRoots, boxClient],
   );
 
   const createFolder = useCallback(
@@ -474,10 +480,11 @@ export function useExplorer(
         throw err;
       }
     },
-    [navigation, getTokenForItem, folders, handleError],
+    [navigation, getTokenForItem, folders, handleError, boxClient],
   );
 
   return {
+    boxClient,
     navigation,
     items,
     isLoading,

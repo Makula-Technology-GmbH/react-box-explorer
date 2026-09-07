@@ -94,6 +94,7 @@ function FileThumbnail({
   token: string | null;
   item: BoxNode;
 }) {
+  const { client } = useBoxExplorer();
   const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -103,17 +104,11 @@ function FileThumbnail({
     let cancelled = false;
 
     async function fetchRepresentation(retries = 4, delayMs = 2000): Promise<void> {
-      const res = await fetch(
-        `https://api.box.com/2.0/files/${fileId}?fields=representations`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'x-rep-hints': '[jpg?dimensions=1024x1024]',
-          },
-        },
+      const data = await client.getRepresentations(
+        token!,
+        fileId,
+        '[jpg?dimensions=1024x1024]',
       );
-      if (!res.ok) throw new Error('request failed');
-      const data = await res.json();
       if (cancelled) return;
 
       const entry = data?.representations?.entries?.[0];
@@ -149,7 +144,7 @@ function FileThumbnail({
     });
 
     return () => { cancelled = true; };
-  }, [fileId, token]);
+  }, [fileId, token, client]);
 
   if (failed) {
     return (
