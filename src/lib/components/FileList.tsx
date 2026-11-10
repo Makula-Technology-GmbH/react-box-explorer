@@ -5,6 +5,7 @@ import { FileListItem } from './FileListItem';
 import { GridItem } from './GridItem';
 import { ConfirmModal } from './ConfirmModal';
 import { RenameModal } from './RenameModal';
+import { Portal } from './Portal';
 import styles from '../styles/explorer.module.css';
 
 export function FileList() {
@@ -304,6 +305,7 @@ export function FileList() {
         const showDeleteDivider = showRename && showDelete;
 
         return (
+          <Portal>
           <div
             ref={menuRef}
             className={styles.contextMenu}
@@ -348,6 +350,7 @@ export function FileList() {
               </button>
             )}
           </div>
+          </Portal>
         );
       })()}
 

@@ -1,3 +1,4 @@
+import { Portal } from './Portal';
 import styles from '../styles/explorer.module.css';
 
 export interface UploadItem {
@@ -19,6 +20,7 @@ export function UploadProgressModal({ items, onClose }: UploadProgressModalProps
   const errorCount = items.filter((item) => item.status === 'error').length;
 
   return (
+    <Portal>
     <div className={styles.modalOverlay} onClick={isComplete ? onClose : undefined}>
       <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalTitle}>
@@ -63,5 +65,6 @@ export function UploadProgressModal({ items, onClose }: UploadProgressModalProps
         )}
       </div>
     </div>
+    </Portal>
   );
 }

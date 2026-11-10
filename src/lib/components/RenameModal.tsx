@@ -1,3 +1,4 @@
+import { Portal } from './Portal';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import styles from '../styles/explorer.module.css';
 
@@ -58,6 +59,7 @@ export function RenameModal({
   };
 
   return (
+    <Portal>
     <div className={styles.modalOverlay} onClick={onCancel}>
       <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalTitle}>
@@ -95,5 +97,6 @@ export function RenameModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }

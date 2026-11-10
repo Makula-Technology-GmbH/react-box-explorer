@@ -1,3 +1,4 @@
+import { Portal } from './Portal';
 import { useRef, useState } from 'react';
 import styles from '../styles/explorer.module.css';
 
@@ -168,6 +169,7 @@ export function UploadFilesModal({
   };
 
   return (
+    <Portal>
     <div className={styles.previewOverlay} onClick={onClose}>
       <div
         className={styles.previewModal}
@@ -542,5 +544,6 @@ export function UploadFilesModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }

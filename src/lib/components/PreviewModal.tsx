@@ -1,3 +1,4 @@
+import { Portal } from './Portal';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { BoxNode } from '../types';
 import { DEFAULT_BASE_URL } from '../api/boxClient';
@@ -55,6 +56,7 @@ export function PreviewModal({
   };
 
   return (
+    <Portal>
     <div className={styles.previewOverlay} onClick={onClose}>
       <div
         className={styles.previewModal}
@@ -92,6 +94,7 @@ export function PreviewModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
 
