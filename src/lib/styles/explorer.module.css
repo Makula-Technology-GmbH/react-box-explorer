@@ -649,6 +649,22 @@
   color: #444;
 }
 
+/* ===== Portal root =====
+ * Menus/modals are portaled to document.body so `position: fixed` isn't
+ * trapped by a transformed ancestor (e.g. a slide-in drawer). Re-apply the
+ * typography they would otherwise inherit from .explorer. */
+.portalRoot {
+  font-family:
+    "Lato",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 13px;
+  color: #222;
+}
+
 /* ===== Context Menu ===== */
 .contextMenu {
   position: fixed;
