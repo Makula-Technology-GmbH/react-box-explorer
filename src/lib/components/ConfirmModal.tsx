@@ -1,3 +1,4 @@
+import { Portal } from './Portal';
 import styles from '../styles/explorer.module.css';
 
 interface ConfirmModalProps {
@@ -20,6 +21,7 @@ export function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   return (
+    <Portal>
     <div className={styles.modalOverlay} onClick={onCancel}>
       <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalTitle}>{title}</div>
@@ -42,5 +44,6 @@ export function ConfirmModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
